@@ -635,7 +635,7 @@
           if (r.direction === 1 && !r.fallen) {
             runnersFinished++;
 
-            if (runnersFinished % 44 === 0 && mile < 26) {
+            if (runnersFinished % 33 === 0 && mile < 26) {
               mile++;
               document.getElementById('mile').textContent = mile;
             }
