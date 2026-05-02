@@ -527,6 +527,7 @@
       }
     }
   }
+  
 
   // ── Wrong-way correction ──────────────────────────────────
   function shoutCorrection(turnedRunner) {
@@ -645,12 +646,12 @@
 
           usedNames.delete(r.name);
           runners.splice(i, 1);
-        }   
+        }
+      }
 
     checkCollisions();
     requestAnimationFrame(tick);
   }
-  tick();
 
   // ── Reaction sets ─────────────────────────────────────────
   const REACTIONS = {
