@@ -20,6 +20,10 @@ npx serve .
 python3 -m http.server
 ```
 
+Or click the link:
+
+[🚀 Play Marathon Spectator](https://marathon-game-tan.vercel.app)
+
 ## How to Play
 
 1. **Tap a runner** on the road to select them (dashed blue outline appears)
