@@ -737,6 +737,7 @@ let _tornadoEl = null;
 
 // Show current weather type in top bar (optional — nice touch)
 window.getSessionWeather = () => SESSION_WEATHER;
+window.isWeatherActive   = () => _wxActive;
 
 // ── Shared helpers ────────────────────────────────────────────
 function makeSkyOverlay(stage, color, opacity) {

@@ -806,11 +806,36 @@
 
   // ── Reaction sets ─────────────────────────────────────────
   const REACTIONS = {
-    pro:      { water:['*grabs*','thx'],                    banana:['nice','*peels*'],          gel:['perfect','*nods*'],          cowbell:['🤘','lfg'],                cheer:['*nods*','thx'],            compliment:['*smirks*','I know 😎'],    insult:['lol nope','*speeds up*','what a day!'], confuse:['*ignores*','nice try']            },
-    happy:    { water:['THANK YOU 💖','lifesaver!!'],        banana:['my hero!!','YESSS'],        gel:['bless you','⚡⚡⚡'],          cowbell:['MORE COWBELL','wooo!!'],    cheer:['THANK YOU','*blows kiss*'],  compliment:['*beams*','AWWW'],           insult:['*laughs*','fair fair'],          confuse:['wait... really?','are you sure??'] },
-    tired:    { water:['oh god thank you','YOU SAVED ME'],   banana:['food. yes.','angel...'],    gel:['I might live','please work'],  cowbell:['*flinches*','too loud'],    cheer:['*weak smile*','thanks...'],  compliment:["*cries*","don't lie"],       insult:['I know 😭',"you're right"],      confuse:['oh no','OH GOD','*believes you*']   },
-    salty:    { water:['*grunt*','mhm'],                     banana:['fine','...'],               gel:['could be colder','whatever'], cowbell:['quiet down','*glares*'],    cheer:['*ignores*','*stoic*'],       compliment:['*unimpressed*','kid stuff'], insult:['*flips off*','see you at 26 🖕'], confuse:['*ignores*','pathetic']            },
-    gullible: { water:['THANK YOU OMG','first marathon!!'],  banana:['oh wow!! food!!','thanks!!'],gel:['what is this?','ooooh'],      cowbell:['IS THIS FOR ME?','I love this!!'], cheer:['I HEAR YOU 🥺','*waves*'], compliment:['ME?? thanks!!','*ugly cry*'], insult:['😭','*deeply hurt*'],            confuse:['WAIT WHAT','OH NO','really??']     },
+    pro: {
+      water:['*grabs*','thx'], banana:['nice','*peels*'], gel:['perfect','*nods*'], cowbell:['🤘','lfg'],
+      cheer:['*nods*','thx'], compliment:['*smirks*','I know 😎'],
+      insult:['lol nope','*speeds up*','what a day!'], confuse:['*ignores*','nice try'],
+      medicine:['*pockets it*','clutch','thx doc'], umbrella:['*tucks under arm*','solid'], ice:['perfect','*press to neck*'],
+    },
+    happy: {
+      water:['THANK YOU 💖','lifesaver!!'], banana:['my hero!!','YESSS'], gel:['bless you','⚡⚡⚡'], cowbell:['MORE COWBELL','wooo!!'],
+      cheer:['THANK YOU','*blows kiss*'], compliment:['*beams*','AWWW'],
+      insult:['*laughs*','fair fair'], confuse:['wait... really?','are you sure??'],
+      medicine:['LIFESAVER 💊','magic pill!','my hero!!'], umbrella:['MY HERO ☂️','so dry now!','blessed'], ice:['ICE 🧊 yes!!','so cold but YES','REVIVED 🥶'],
+    },
+    tired: {
+      water:['oh god thank you','YOU SAVED ME'], banana:['food. yes.','angel...'], gel:['I might live','please work'], cowbell:['*flinches*','too loud'],
+      cheer:['*weak smile*','thanks...'], compliment:["*cries*","don't lie"],
+      insult:['I know 😭',"you're right"], confuse:['oh no','OH GOD','*believes you*'],
+      medicine:['oh thank god','I needed this','*sobs* yes'], umbrella:['blessed','thanks angel','*sigh of relief*'], ice:['REVIVED','I can run again!!','new life'],
+    },
+    salty: {
+      water:['*grunt*','mhm'], banana:['fine','...'], gel:['could be colder','whatever'], cowbell:['quiet down','*glares*'],
+      cheer:['*ignores*','*stoic*'], compliment:['*unimpressed*','kid stuff'],
+      insult:['*flips off*','see you at 26 🖕'], confuse:['*ignores*','pathetic'],
+      medicine:['*pockets it*','fine.'], umbrella:['*grunt*','whatever'], ice:['mhm','*holds it silently*'],
+    },
+    gullible: {
+      water:['THANK YOU OMG','first marathon!!'], banana:['oh wow!! food!!','thanks!!'], gel:['what is this?','ooooh'], cowbell:['IS THIS FOR ME?','I love this!!'],
+      cheer:['I HEAR YOU 🥺','*waves*'], compliment:['ME?? thanks!!','*ugly cry*'],
+      insult:['😭','*deeply hurt*'], confuse:['WAIT WHAT','OH NO','really??'],
+      medicine:['is this candy??','MEDICINE 💊!!','wow thank you!!'], umbrella:['☂️ SO COOL','what is this magic'], ice:['cold!!!','this is WILD','*holds to face*'],
+    },
   };
 
   // ── Action handler ────────────────────────────────────────
@@ -825,7 +850,7 @@
     runner.el.appendChild(b);
     setTimeout(() => b.remove(), 2400);
 
-    const isItem = ['water','banana','gel','cowbell'].includes(action);
+    const isItem = ['water','banana','gel','cowbell','medicine','umbrella','ice'].includes(action);
     const rd = Math.random(), p = runner.archetype.p;
 
     if (isItem) {
@@ -835,6 +860,27 @@
       if (action === 'cowbell') audioSwell(0.06);
       if (p === 'tired' && (action === 'water' || action === 'gel')) {
         runner.paused = 50; runner.morale = Math.min(1.3, runner.morale + 0.1); stats.stop++;
+      }
+
+      // 💊 Medicine — cure cramps, small morale boost
+      if (action === 'medicine') {
+        if (runner.cramping) {
+          runner.cramping = false;
+          runner.speed = runner.baseSpeed * runner.morale;
+          runner.el.classList.remove('cramping');
+        }
+        runner.morale = Math.min(1.4, runner.morale + 0.10);
+      }
+
+      // ☂️ Umbrella — bigger boost in rain
+      if (action === 'umbrella') {
+        const isRaining = window.SESSION_WEATHER === 'rain' && window.isWeatherActive && window.isWeatherActive();
+        runner.morale = Math.min(1.4, runner.morale + (isRaining ? 0.18 : 0.05));
+      }
+
+      // 🧊 Ice — strong refresh + small speed bump
+      if (action === 'ice') {
+        runner.morale = Math.min(1.4, runner.morale + 0.15);
       }
     } else if (action === 'cheer' || action === 'compliment') {
       bonusStats.cheers++;
@@ -874,7 +920,7 @@
     if (!selectedRunner) { hint.textContent = '⚠ tap a runner first'; return; }
     const r = selectedRunner;
     if (r.fallen || r.beingRescued || r.peeing) { hint.textContent = '⚠ runner is busy'; return; }
-    const emojis = { water:'💧', banana:'🍌', gel:'⚡', cowbell:'🔔' };
+    const emojis = { water:'💧', banana:'🍌', gel:'⚡', cowbell:'🔔', medicine:'💊', umbrella:'☂️', ice:'🧊' };
     if (emojis[action]) tossItem(r, emojis[action]);
     react(r, action);
   };
@@ -886,6 +932,7 @@
   const BONUS_TOTAL_FRAMES = 60 * 60; // ~60s at 60fps
 
   function startGame(mode) {
+   try {
     gameMode  = mode;
     bonusEnded = false;
     document.getElementById('start-screen').classList.add('hidden');
@@ -896,9 +943,29 @@
       bonusFrames = mode === 'helper' ? 90 * 60 : 60 * 60;
       hint.textContent = mode === 'saboteur'
         ? '😈 cause as much chaos as possible!'
-        : '🤝 help runners! deliver items, high-five, avoid chaos';
+        : '🤝 help runners! deliver items, high-five, take care';
+    }
+
+    // Helper mode swaps chaos buttons for helpful items
+    if (mode === 'helper') {
+      const grid = document.querySelector('.action-grid');
+      grid.innerHTML = `
+        <div class="action-btn info"    onclick="doAction('water')"><div class="ico">💧</div><div class="lbl">water</div></div>
+        <div class="action-btn success" onclick="doAction('medicine')"><div class="ico">💊</div><div class="lbl">medicine</div></div>
+        <div class="action-btn warn"    onclick="doAction('gel')"><div class="ico">⚡</div><div class="lbl">gel</div></div>
+        <div class="action-btn"         onclick="doAction('cowbell')"><div class="ico">🔔</div><div class="lbl">cowbell</div></div>
+        <div class="action-btn success" onclick="doAction('cheer')"><div class="ico">👏</div><div class="lbl">cheer</div></div>
+        <div class="action-btn success" onclick="doAction('compliment')"><div class="ico">😊</div><div class="lbl">nice</div></div>
+        <div class="action-btn info"    onclick="doAction('umbrella')"><div class="ico">☂️</div><div class="lbl">umbrella</div></div>
+        <div class="action-btn info"    onclick="doAction('ice')"><div class="ico">🧊</div><div class="lbl">ice</div></div>
+      `;
     }
     if (!window._tickStarted) { window._tickStarted = true; tick(); }
+    console.log('[mile26] startGame complete:', mode);
+   } catch (err) {
+     console.error('[mile26] startGame failed:', err);
+     alert('Could not start game: ' + err.message);
+   }
   }
 
   function calcSaboteurScore() {
@@ -949,37 +1016,40 @@
     document.getElementById('end-screen').classList.add('active');
   }
 
-  // Wire start screen buttons (defensive — wait until DOM is ready)
-  function wireStartScreen() {
-    const cards = document.querySelectorAll('.mode-card');
-    if (cards.length === 0) {
-      // DOM not ready yet — try again on DOMContentLoaded
-      document.addEventListener('DOMContentLoaded', wireStartScreen);
-      return;
-    }
-    cards.forEach(btn => {
-      btn.addEventListener('click', () => startGame(btn.dataset.mode));
-    });
-    const pa = document.getElementById('play-again-btn');
-    const bm = document.getElementById('back-menu-btn');
-    if (pa) pa.addEventListener('click', () => location.reload());
-    if (bm) bm.addEventListener('click', () => location.reload());
-
-    const back = document.getElementById('back-btn');
-    if (back) back.addEventListener('click', () => {
-      // If they're mid-game, ask before bailing
-      if (gameMode && !bonusEnded && (stats.helped + stats.slip + stats.bump) > 0) {
-        if (!confirm('Quit current game and return to menu?')) return;
+  // ── Universal click delegation — works regardless of DOM timing ──
+  // Catches all start-screen + back/play-again clicks on the document level,
+  // so it doesn't matter whether the elements existed when game.js loaded.
+  document.addEventListener('click', e => {
+    try {
+      // Mode card on start screen
+      const card = e.target.closest('.mode-card');
+      if (card && card.dataset.mode) {
+        console.log('[mile26] starting mode:', card.dataset.mode);
+        startGame(card.dataset.mode);
+        return;
       }
-      location.reload();
-    });
-    console.log('[mile26] start screen wired:', cards.length, 'modes');
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', wireStartScreen);
-  } else {
-    wireStartScreen();
-  }
+
+      // Play Again / Back to Menu buttons inside end screen
+      if (e.target.closest('#play-again-btn') || e.target.closest('#back-menu-btn')) {
+        location.reload();
+        return;
+      }
+
+      // Top-bar back arrow (during game)
+      if (e.target.closest('#back-btn')) {
+        if (gameMode && !bonusEnded && (stats.helped + stats.slip + stats.bump) > 0) {
+          if (!confirm('Quit current game and return to menu?')) return;
+        }
+        location.reload();
+        return;
+      }
+    } catch (err) {
+      console.error('[mile26] click handler error:', err);
+      alert('Game error: ' + err.message);
+    }
+  });
+
+  console.log('[mile26] click delegation wired — script loaded OK');
 
 })();
 
