@@ -10,6 +10,8 @@
 
   // ── Stats ─────────────────────────────────────────────────
   const stats = { helped: 0, stop: 0, turned: 0, slip: 0, bump: 0 };
+  const bonusStats = { hifi: 0, cheers: 0, cleanExits: 0 };
+  window._marathonBonusStats = bonusStats;
   function updateStats() {
     for (const k in stats) document.getElementById('stat-' + k).textContent = stats[k];
   }
@@ -18,10 +20,18 @@
   const FEMALE_NAMES = [
     'Isabelle','Rheine','Bettina','Sophie','Aisha','Priya',
     'Olivia','Yuki','Emma','Nadia','Carmen','Zoe','Lucia','Greta',
+    // +20
+    'Amara','Suki','Valentina','Ingrid','Leila','Fatou','Chloe','Mia',
+    'Hana','Rosa','Adaeze','Freya','Elif','Sienna','Maren','Juno',
+    'Paloma','Saoirse','Thea','Xiomara',
   ];
   const MALE_NAMES = [
     'Pedro','Mateo','Dylan','Michael','Kevin','Andre',
     'Marcus','Liam','Chen','Diego','Hiro','Theo','Felix','Bruno',
+    // +20
+    'Kai','Idris','Reuben','Soren','Emeka','Tomas','Nico','Ezra',
+    'Hamza','Luca','Finn','Rashid','Callum','Omar','Javi','Tobias',
+    'Ren','Kwame','Bastian','Cormac',
   ];
   const usedNames = new Set();
 
@@ -49,16 +59,15 @@
     </svg>`;
     sky.appendChild(el);
     clouds.push({ el, x, speed: 0.03 + Math.random() * 0.08 });
-    
   }
   makeCloud(40,  60, 0.9);
   makeCloud(180, 80, 0.7);
   makeCloud(280, 50, 1.0);
-  makeCloud(100,  40, 0.8);
-  makeCloud(220,  70, 0.6);
-  makeCloud(320,  30, 1.2);
+  makeCloud(100, 40, 0.8);
+  makeCloud(220, 70, 0.6);
+  makeCloud(320, 30, 1.2);
   makeCloud(60,  90, 0.7);
-  makeCloud(260,  20, 0.9);
+  makeCloud(260, 20, 0.9);
 
   function moveClouds() {
     for (const c of clouds) {
@@ -70,7 +79,7 @@
   }
   moveClouds();
 
-  // ── Sky: blimp (no banner) ────────────────────────────────
+  // ── Sky: blimp ────────────────────────────────────────────
   const blimp = document.createElement('div');
   blimp.className = 'blimp';
   blimp.style.cssText = 'width:90px;top:30px;';
@@ -101,15 +110,15 @@
 
   // ── Sponsor banners on railing ────────────────────────────
   const SPONSORS = [
-    { text: 'NIKK',     bg: '#fa6900', fg: '#fff' },
-    { text: 'GPBS',bg: '#f47216', fg: '#fff' },
-    { text: 'ASIKZ',    bg: '#1a4ba8', fg: '#fff' },
-    { text: 'BANK',     bg: '#0e7c3a', fg: '#fff' },
-    { text: 'NEWSDAY',  bg: '#222',    fg: '#fff' },
-    { text: 'POWRADE',  bg: '#d12626', fg: '#fff' },
-    { text: 'CITY26',   bg: '#ffd23f', fg: '#222' },
-    { text: 'GOFAST',   bg: '#7f2eb8', fg: '#fff' },
-    { text: 'STRIDE',   bg: '#0bbacd', fg: '#fff' },
+    { text: 'NIKK',    bg: '#fa6900', fg: '#fff' },
+    { text: 'GPBS',    bg: '#f47216', fg: '#fff' },
+    { text: 'ASIKZ',   bg: '#1a4ba8', fg: '#fff' },
+    { text: 'BANK',    bg: '#0e7c3a', fg: '#fff' },
+    { text: 'NEWSDAY', bg: '#222',    fg: '#fff' },
+    { text: 'POWRADE', bg: '#d12626', fg: '#fff' },
+    { text: 'CITY26',  bg: '#ffd23f', fg: '#222' },
+    { text: 'GOFAST',  bg: '#7f2eb8', fg: '#fff' },
+    { text: 'STRIDE',  bg: '#0bbacd', fg: '#fff' },
   ];
   for (let i = 0; i < 8; i++) {
     const s = SPONSORS[Math.floor(Math.random() * SPONSORS.length)];
@@ -123,17 +132,15 @@
 
   // ── Audio ─────────────────────────────────────────────────
   let crowdAudio = null;
-  let audioOn = false;
+  let audioOn    = false;
 
   document.getElementById('audio-toggle').addEventListener('click', function () {
     if (!crowdAudio) {
       crowdAudio = new Audio('/crowd.mp3');
-      crowdAudio.loop = true;
+      crowdAudio.loop   = true;
       crowdAudio.volume = 0.25;
     }
-
     audioOn = !audioOn;
-
     if (audioOn) {
       crowdAudio.play();
       this.textContent = '🔊 sound';
@@ -143,16 +150,11 @@
     }
   });
 
-  // Crowd reaction swell (fake boost effect)
   function audioSwell(intensity = 0.1) {
     if (!audioOn || !crowdAudio) return;
-
     const base = 0.25;
     crowdAudio.volume = Math.min(0.6, base + intensity);
-
-    setTimeout(() => {
-      if (crowdAudio) crowdAudio.volume = base;
-    }, 800);
+    setTimeout(() => { if (crowdAudio) crowdAudio.volume = base; }, 800);
   }
 
   // ── Crowd spectators ──────────────────────────────────────
@@ -166,6 +168,7 @@
   ];
   const POSTER_BGS = ['#FAEEDA','#E6F1FB','#E1F5EE','#FCEBEB','#EEEDFE','#FAF6E7'];
   const crowdMembers = [];
+  window._marathonCrowd = crowdMembers; // exposed for new-features.js
 
   for (let i = 0; i < 26; i++) {
     const el = document.createElement('div');
@@ -186,8 +189,8 @@
   }
 
   // ── Crowd dialogue ────────────────────────────────────────
-  const GENERIC_SHOUTS  = ['GOOOO!!','strong!','wooo!!','LETS GOOO','flying!','champ!','almost there!','BEAST MODE'];
-  const CONCERN_SHOUTS  = ['oh no!','OH NO','help!','*gasps*','poor thing','medic!!','jeez!', 'what a day!'];
+  const GENERIC_SHOUTS = ['GOOOO!!','strong!','wooo!!','LETS GOOO','flying!','champ!','almost there!','BEAST MODE'];
+  const CONCERN_SHOUTS = ['oh no!','OH NO','help!','*gasps*','poor thing','medic!!','jeez!','what a day!'];
 
   function namedShout(name) {
     const opts = [
@@ -212,7 +215,7 @@
   }
 
   function randomCheer() {
-    const visible = runners.filter(r => r.x > 0 && r.x < stage.offsetWidth && !r.fallen);
+    const visible = runners.filter(r => r.x > 0 && r.x < stage.offsetWidth && !r.fallen && !r.peeing);
     if (visible.length > 0 && Math.random() < 0.6) {
       const target = visible[Math.floor(Math.random() * visible.length)];
       const spec = nearestSpec(target);
@@ -250,21 +253,21 @@
 
   // ── Runner archetypes ─────────────────────────────────────
   const ARCHETYPES = [
-    { shirt:'#e24b4a', shorts:'#27158d', skin:'#f4c4a0', p:'pro',     bib:'001', g:'M', hair:'short', hc:'#3a2820' },
-    { shirt:'#d4537e', shorts:'#1a1a1a', skin:'#f4c4a0', p:'pro',     bib:'002', g:'F', hair:'pony',  hc:'#5a3a20' },
-    { shirt:'#378add', shorts:'#18c131',    skin:'#d9a574', p:'happy',   bib:'247', g:'M', hair:'short', hc:'#222'    },
-    { shirt:'#7f77dd', shorts:'#1a1a1a', skin:'#e8c0a0', p:'happy',   bib:'326', g:'F', hair:'pony',  hc:'#3a2820' },
-    { shirt:'#f5c4b3', shorts:'#d17920', skin:'#c98c63', p:'tired',   bib:'588', g:'M', hair:'short', hc:'#1a1a1a' },
-    { shirt:'#1d9e75', shorts:'#192d9f',    skin:'#e8b48a', p:'happy',   bib:'412', g:'F', hair:'bun',   hc:'#4a2a18' },
-    { shirt:'#ba7517', shorts:'#2695a1', skin:'#a87858', p:'salty',   bib:'003', g:'M', hair:'bald',  hc:'#888'    },
-    { shirt:'#5dcaa5', shorts:'#222',    skin:'#e0a87c', p:'salty',   bib:'014', g:'F', hair:'pony',  hc:'#222'    },
-    { shirt:'#fac775', shorts:'#e24b4a', skin:'#e0a87c', p:'gullible',bib:'777', g:'M', hair:'short', hc:'#3a2820' },
-    { shirt:'#5dcaa5', shorts:'#a4ae12',    skin:'#dcb088', p:'gullible',bib:'512', g:'F', hair:'bun',   hc:'#5a3a20' },
-    { shirt:'#185fa5', shorts:'#000',    skin:'#e8c0a0', p:'pro',     bib:'108', g:'F', hair:'pony',  hc:'#fac775' },
-    { shirt:'#ff6f91', shorts:'#f10707',    skin:'#f1c27d', p:'happy',   bib:'639', g:'F', hair:'pony',  hc:'#5a2a1a' },
-    { shirt:'#6a4c93', shorts:'#a80f0f', skin:'#e0ac69', p:'tired',   bib:'842', g:'F', hair:'bun',  hc:'#1a1a1a' },
-    { shirt:'#00b894', shorts:'#c73e3e',    skin:'#d2a679', p:'salty',   bib:'275', g:'F', hair:'pony',  hc:'#3b2f2f' },
-    { shirt:'#0984e3', shorts:'#18a49a',    skin:'#f4c4a0', p:'gullible', bib:'918', g:'F', hair:'bun', hc:'#8b4513' }
+    { shirt:'#e24b4a', shorts:'#27158d', skin:'#f4c4a0', p:'pro',      bib:'001', g:'M', hair:'short', hc:'#3a2820' },
+    { shirt:'#d4537e', shorts:'#1a1a1a', skin:'#f4c4a0', p:'pro',      bib:'002', g:'F', hair:'pony',  hc:'#5a3a20' },
+    { shirt:'#378add', shorts:'#18c131', skin:'#d9a574', p:'happy',    bib:'247', g:'M', hair:'short', hc:'#222'    },
+    { shirt:'#7f77dd', shorts:'#1a1a1a', skin:'#e8c0a0', p:'happy',    bib:'326', g:'F', hair:'pony',  hc:'#3a2820' },
+    { shirt:'#f5c4b3', shorts:'#d17920', skin:'#c98c63', p:'tired',    bib:'588', g:'M', hair:'short', hc:'#1a1a1a' },
+    { shirt:'#1d9e75', shorts:'#192d9f', skin:'#e8b48a', p:'happy',    bib:'412', g:'F', hair:'bun',   hc:'#4a2a18' },
+    { shirt:'#ba7517', shorts:'#2695a1', skin:'#a87858', p:'salty',    bib:'003', g:'M', hair:'bald',  hc:'#888'    },
+    { shirt:'#5dcaa5', shorts:'#222',    skin:'#e0a87c', p:'salty',    bib:'014', g:'F', hair:'pony',  hc:'#222'    },
+    { shirt:'#fac775', shorts:'#e24b4a', skin:'#e0a87c', p:'gullible', bib:'777', g:'M', hair:'short', hc:'#3a2820' },
+    { shirt:'#5dcaa5', shorts:'#a4ae12', skin:'#dcb088', p:'gullible', bib:'512', g:'F', hair:'bun',   hc:'#5a3a20' },
+    { shirt:'#185fa5', shorts:'#000',    skin:'#e8c0a0', p:'pro',      bib:'108', g:'F', hair:'pony',  hc:'#fac775' },
+    { shirt:'#ff6f91', shorts:'#f10707', skin:'#f1c27d', p:'happy',    bib:'639', g:'F', hair:'pony',  hc:'#5a2a1a' },
+    { shirt:'#6a4c93', shorts:'#a80f0f', skin:'#e0ac69', p:'tired',    bib:'842', g:'F', hair:'bun',   hc:'#1a1a1a' },
+    { shirt:'#00b894', shorts:'#c73e3e', skin:'#d2a679', p:'salty',    bib:'275', g:'F', hair:'pony',  hc:'#3b2f2f' },
+    { shirt:'#0984e3', shorts:'#18a49a', skin:'#f4c4a0', p:'gullible', bib:'918', g:'F', hair:'bun',   hc:'#8b4513' },
   ];
   const WC_ARCHETYPES = [
     { shirt:'#185fa5', shorts:'#1a1a1a', skin:'#e8c0a0', p:'pro', bib:'W01', g:'M', hair:'short', hc:'#3a2820', wc:true },
@@ -317,7 +320,7 @@
         <line x1="14" y1="42" x2="30" y2="58" stroke="#444" stroke-width="0.8"/>
         <line x1="14" y1="58" x2="30" y2="42" stroke="#444" stroke-width="0.8"/>
       </g>
-      <circle cx="50" cy="58" r="6"  fill="none" stroke="#222" stroke-width="1.5"/>
+      <circle cx="50" cy="58" r="6"   fill="none" stroke="#222" stroke-width="1.5"/>
       <circle cx="50" cy="58" r="1.5" fill="#444"/>
       <line x1="22" y1="50" x2="42" y2="40" stroke="#444" stroke-width="2"/>
       <line x1="42" y1="40" x2="50" y2="58" stroke="#444" stroke-width="2"/>
@@ -340,16 +343,16 @@
       <ellipse cx="20.5" cy="71" rx="4" ry="2.5" fill="#222"/>
       <ellipse cx="27.5" cy="71" rx="4" ry="2.5" fill="#222"/>
       <path d="M16 24 Q16 20 20 20 L28 20 Q32 20 32 24 L32 50 L16 50 Z" fill="#f5f5f5" stroke="#333" stroke-width="0.5"/>
-      <rect x="22"   y="30"   width="4"   height="1.5" fill="#e24b4a"/>
-      <rect x="23.25" y="28.75" width="1.5" height="4" fill="#e24b4a"/>
-      <rect class="arm-back"  x="11"  y="24" width="4.5" height="16" rx="1.8" fill="#f5f5f5"/>
+      <rect x="22"    y="30"    width="4"   height="1.5" fill="#e24b4a"/>
+      <rect x="23.25" y="28.75" width="1.5" height="4"   fill="#e24b4a"/>
+      <rect class="arm-back"  x="11"   y="24" width="4.5" height="16" rx="1.8" fill="#f5f5f5"/>
       <rect class="arm-front" x="32.5" y="24" width="4.5" height="16" rx="1.8" fill="#f5f5f5"/>
-      <circle cx="13"  cy="42" r="2.8" fill="#e8c0a0"/>
+      <circle cx="13"   cy="42" r="2.8" fill="#e8c0a0"/>
       <circle cx="34.5" cy="42" r="2.8" fill="#e8c0a0"/>
-      <circle cx="24" cy="11" r="7.5" fill="#e8c0a0"/>
+      <circle cx="24"   cy="11" r="7.5" fill="#e8c0a0"/>
       <path d="M16 10 Q16 4 24 4 Q32 4 32 10 L32 9 Q32 6 24 6 Q16 6 16 9 Z" fill="#fff"/>
-      <rect x="22.5" y="6.5"  width="3"   height="1" fill="#e24b4a"/>
-      <rect x="23.25" y="6"   width="1.5"  height="2" fill="#e24b4a"/>
+      <rect x="22.5"  y="6.5" width="3"   height="1" fill="#e24b4a"/>
+      <rect x="23.25" y="6"   width="1.5" height="2" fill="#e24b4a"/>
     </svg>`;
   }
 
@@ -357,8 +360,9 @@
   let selectedRunner = null;
   let emergency      = false;
   let mile           = 0;
-  let runnersFinished = 0; 
+  let mileFrame      = 0;
   const runners      = [];
+  window._marathonRunners = runners; // exposed for new-features.js
   const peels        = [];
 
   // ── Runner factory ────────────────────────────────────────
@@ -385,20 +389,23 @@
       fallen: false, beingRescued: false,
       bumpCooldown: 0,
       name: pickName(archetype.g),
-      isWc: !!archetype.wc,
+      isWc:      !!archetype.wc,
+      peeing:    false,  // managed by new-features.js porta-potty
+      cramping:  false,  // managed by new-features.js cramp event
+      _finished: false,  // finish line one-shot
     };
     runners.push(runner);
 
     el.addEventListener('click', e => {
       e.stopPropagation();
-      if (runner.fallen || runner.beingRescued) return;
+      if (runner.fallen || runner.beingRescued || runner.peeing) return;
       if (selectedRunner) {
         const prev = selectedRunner.el.querySelector('svg');
         if (prev) prev.style.outline = '';
       }
       selectedRunner = runner;
       const svg = el.querySelector('svg');
-      svg.style.outline      = '2px dashed #185FA5';
+      svg.style.outline       = '2px dashed #185FA5';
       svg.style.outlineOffset = '2px';
       hint.textContent = `selected ${runner.name} (#${archetype.bib}) — pick an action`;
     });
@@ -409,12 +416,12 @@
     else                    r.el.classList.remove('flipped');
   }
 
-  // ── Banana peel mechanic ──────────────────────────────────
+  // ── Banana peel ───────────────────────────────────────────
   function dropPeel(runner) {
     const el = document.createElement('div');
-    el.className = 'peel';
+    el.className  = 'peel';
     el.textContent = '🍌';
-    el.style.left = (runner.x + 16) + 'px';
+    el.style.left  = (runner.x + 16) + 'px';
     stage.appendChild(el);
     peels.push({ el, x: runner.x + 16, lane: runner.lane, life: 600 });
   }
@@ -422,13 +429,14 @@
   // ── Slip / paramedic ──────────────────────────────────────
   function makeSlip(runner) {
     if (runner.fallen || runner.isWc) return;
+    runner._everFell = true;
     runner.fallen = true; runner.beingRescued = true; runner.paused = 99999;
     runner.el.classList.add('fallen');
     stats.slip++; updateStats();
 
     const slipTexts = ['AAAAAH!', 'WHOA-', 'OOF', 'OH NO', 'MY ANKLE'];
     const b = document.createElement('div');
-    b.className = 'reaction-bubble danger';
+    b.className   = 'reaction-bubble danger';
     b.textContent = slipTexts[Math.floor(Math.random() * slipTexts.length)];
     if (runner.direction === -1) b.classList.add('flipped');
     runner.el.appendChild(b);
@@ -448,32 +456,39 @@
     stage.appendChild(m);
 
     const targetX = fallenRunner.x + 5;
-    let mx = w + 50, frame = 0;
+    let mx = w + 50, mf = 0;
     const interval = setInterval(() => {
-      mx -= 3; frame++;
-      m.style.left = mx + 'px';
-      m.style.transform = `translateY(${Math.sin(frame * 0.4) * 2}px)`;
-      const ls = Math.sin(frame * 0.4) * 6;
+      mx -= 3; mf++;
+      m.style.left      = mx + 'px';
+      m.style.transform = `translateY(${Math.sin(mf * 0.4) * 2}px)`;
+      const ls = Math.sin(mf * 0.4) * 6;
       const lb = m.querySelector('.leg-back'), lf = m.querySelector('.leg-front');
-      if (lb) { lb.style.transform = `translateY(${Math.max(0,ls)}px)`; lf.style.transform = `translateY(${Math.max(0,-ls)}px)`; }
-
+      if (lb) {
+        lb.style.transform = `translateY(${Math.max(0,  ls)}px)`;
+        lf.style.transform = `translateY(${Math.max(0, -ls)}px)`;
+      }
       if (mx <= targetX) {
         clearInterval(interval);
         m.style.transform = '';
         const hb = document.createElement('div');
-        hb.className = 'reaction-bubble'; hb.style.bottom = '88%';
-        hb.textContent = `you ok ${fallenRunner.name}?`;
-        m.appendChild(hb); setTimeout(() => hb.remove(), 2400);
+        hb.className  = 'reaction-bubble';
+        hb.style.bottom = '88%';
+        hb.textContent  = `you ok ${fallenRunner.name}?`;
+        m.appendChild(hb);
+        setTimeout(() => hb.remove(), 2400);
 
         setTimeout(() => {
           fallenRunner.el.classList.remove('fallen');
-          fallenRunner.fallen = false; fallenRunner.beingRescued = false;
-          fallenRunner.paused = 0; fallenRunner.morale = Math.max(0.5, fallenRunner.morale - 0.2);
+          fallenRunner.fallen       = false;
+          fallenRunner.beingRescued = false;
+          fallenRunner.paused       = 0;
+          fallenRunner.morale       = Math.max(0.5, fallenRunner.morale - 0.2);
           setTimeout(() => {
             let ef = 0;
             const exit = setInterval(() => {
               mx += 3; ef++;
-              m.style.left = mx + 'px'; m.style.transform = 'scaleX(-1)';
+              m.style.left      = mx + 'px';
+              m.style.transform = 'scaleX(-1)';
               if (mx > w + 50) { clearInterval(exit); m.remove(); emergency = false; }
             }, 30);
           }, 1200);
@@ -491,7 +506,7 @@
     setTimeout(() => { rA.el.classList.remove('bumped'); rB.el.classList.remove('bumped'); }, 500);
 
     const burst = document.createElement('div');
-    burst.className = 'impact-burst';
+    burst.className   = 'impact-burst';
     burst.textContent = ['💥', 'BAM!', 'OOF!'][Math.floor(Math.random() * 3)];
     burst.style.left   = ((rA.x + rB.x) / 2 + 20) + 'px';
     burst.style.bottom = (stage.offsetHeight * 0.18) + 'px';
@@ -499,8 +514,7 @@
     setTimeout(() => burst.remove(), 700);
 
     if (Math.random() < 0.3 && !rA.isWc && !rB.isWc) {
-      const faller = rA.baseSpeed < rB.baseSpeed ? rA : rB;
-      makeSlip(faller);
+      makeSlip(rA.baseSpeed < rB.baseSpeed ? rA : rB);
     } else {
       [rA, rB].forEach((r, i) => {
         r.paused = 25 + Math.floor(Math.random() * 20);
@@ -509,10 +523,11 @@
           : [`my bad ${rA.name}!`, 'OOF', '*stumbles*'];
         setTimeout(() => {
           const b = document.createElement('div');
-          b.className = 'reaction-bubble';
+          b.className   = 'reaction-bubble';
           b.textContent = lines[Math.floor(Math.random() * lines.length)];
           if (r.direction === -1) b.classList.add('flipped');
-          r.el.appendChild(b); setTimeout(() => b.remove(), 2400);
+          r.el.appendChild(b);
+          setTimeout(() => b.remove(), 2400);
         }, 200 + i * 300);
       });
     }
@@ -524,14 +539,13 @@
         const a = runners[i], b = runners[j];
         if (a.lane !== b.lane || a.fallen || b.fallen || a.bumpCooldown > 0 || b.bumpCooldown > 0) continue;
         if (Math.abs(a.x - b.x) < 18) {
-          const opposing   = a.direction !== b.direction;
-          const speedGap   = a.direction === b.direction && Math.abs(a.baseSpeed - b.baseSpeed) > 0.4;
+          const opposing = a.direction !== b.direction;
+          const speedGap = a.direction === b.direction && Math.abs(a.baseSpeed - b.baseSpeed) > 0.4;
           if (opposing || speedGap) bump(a, b);
         }
       }
     }
   }
-  
 
   // ── Wrong-way correction ──────────────────────────────────
   function shoutCorrection(turnedRunner) {
@@ -542,23 +556,28 @@
     if (nearby.length === 0) return;
     const corrector = nearby[Math.floor(Math.random() * nearby.length)];
     const shouts = [
-      `${turnedRunner.name}, wrong way!`, `hey ${turnedRunner.name}!!`,
+      `${turnedRunner.name}, wrong way!`,
+      `hey ${turnedRunner.name}!!`,
       `NO ${turnedRunner.name}, this way!`,
     ];
     const b = document.createElement('div');
-    b.className = 'reaction-bubble shout';
+    b.className   = 'reaction-bubble shout';
     b.textContent = shouts[Math.floor(Math.random() * shouts.length)];
     if (corrector.direction === -1) b.classList.add('flipped');
-    corrector.el.appendChild(b); setTimeout(() => b.remove(), 2400);
+    corrector.el.appendChild(b);
+    setTimeout(() => b.remove(), 2400);
 
     if (Math.random() < 0.5) {
       setTimeout(() => {
         if (turnedRunner.el.parentNode && turnedRunner.direction === -1 && !turnedRunner.fallen) {
-          turnedRunner.direction = 1; turnedRunner.turnedAround = false; setFlip(turnedRunner);
+          turnedRunner.direction    = 1;
+          turnedRunner.turnedAround = false;
+          setFlip(turnedRunner);
           const re = document.createElement('div');
-          re.className = 'reaction-bubble confused';
+          re.className   = 'reaction-bubble confused';
           re.textContent = ['oh my god', 'OH NO', 'wait WHAT'][Math.floor(Math.random() * 3)];
-          turnedRunner.el.appendChild(re); setTimeout(() => re.remove(), 2400);
+          turnedRunner.el.appendChild(re);
+          setTimeout(() => re.remove(), 2400);
         }
       }, 800 + Math.random() * 1200);
     }
@@ -578,34 +597,161 @@
   let frame = 0;
 
   function tick() {
+    if (bonusEnded) return; // freeze loop after saboteur ends
+
     frame++;
+    mileFrame++;
+
+    // Bonus mode countdown (saboteur + helper)
+    if (gameMode === 'saboteur' || gameMode === 'helper') {
+      bonusFrames--;
+      const secs = Math.max(0, Math.ceil(bonusFrames / 60));
+      const mm = Math.floor(secs / 60);
+      const ss = String(secs % 60).padStart(2, '0');
+      const tp = document.getElementById('timer-pill');
+      tp.textContent = `${mm}:${ss}`;
+      if (secs <= 10) tp.classList.add('warning');
+      else            tp.classList.remove('warning');
+
+      // Live score update
+      document.getElementById('score-val').textContent = calcSaboteurScore();
+
+      if (bonusFrames <= 0) { endBonus(); requestAnimationFrame(tick); return; }
+
+      // In saboteur mode, skip mile counter / finish line entirely
+      maybeSpawn();
+      if (window.tickEvents)   window.tickEvents(runners, stage);
+      if (window.tickPigeons)  window.tickPigeons(runners, stage);
+      if (window.tickWeather)  window.tickWeather(runners, stage);
+      for (const r of runners) if (r.bumpCooldown > 0) r.bumpCooldown--;
+
+      // Banana peels
+      for (let p = peels.length - 1; p >= 0; p--) {
+        const peel = peels[p];
+        if (--peel.life <= 0) { peel.el.remove(); peels.splice(p, 1); continue; }
+        for (const r of runners) {
+          if (r.fallen || r.beingRescued || r.isWc || r.peeing || r.lane !== peel.lane) continue;
+          if (Math.abs(r.x - peel.x) < 10 && r.direction === 1 && r.x < peel.x + 10) {
+            peel.el.remove(); peels.splice(p, 1); makeSlip(r); break;
+          }
+        }
+      }
+
+      // Runner update — same as marathon, but no finish line
+      for (let i = runners.length - 1; i >= 0; i--) {
+        const r = runners[i];
+        const fatigue = 1; // no fatigue in saboteur (no miles)
+        r.speed = r.baseSpeed * fatigue * r.morale;
+
+        if (r.paused > 0 && !r.fallen && !r.peeing) r.paused--;
+        else if (!r.fallen && !r.peeing) r.x += r.speed * r.direction;
+        r.el.style.left = r.x + 'px';
+
+        if (!r.fallen && !r.peeing) {
+          if (r.isWc) {
+            const sp = r.el.querySelector('.wheel-spokes');
+            if (sp) sp.style.transform = `rotate(${frame * 12 * r.direction}deg)`;
+            if (!r.el.classList.contains('bumped'))
+              r.el.style.transform = `translateY(${Math.sin(frame * 0.3 + r.bobPhase) * 0.6}px)`;
+          } else {
+            const bob = Math.sin(frame * 0.25 + r.bobPhase) * 1.5;
+            const ls  = Math.sin(frame * 0.25 + r.bobPhase) * 6;
+            if (!r.el.classList.contains('bumped') && !r.el.classList.contains('cramping'))
+              r.el.style.transform = `translateY(${bob}px)`;
+            const lb = r.el.querySelector('.leg-back'),  lf = r.el.querySelector('.leg-front');
+            const ab = r.el.querySelector('.arm-back'),  af = r.el.querySelector('.arm-front');
+            if (lb && r.paused <= 0) {
+              lb.style.transform = `translateY(${Math.max(0,  ls)}px)`;
+              lf.style.transform = `translateY(${Math.max(0, -ls)}px)`;
+              ab.style.transform = `rotate(${-ls}deg)`;
+              af.style.transform = `rotate(${ls}deg)`;
+            }
+          }
+        }
+
+        if (r.turnedAround && !r.fallen && !r.peeing && frame % 90 === Math.floor(Math.random() * 90))
+          if (Math.random() < 0.3) shoutCorrection(r);
+
+        const w = stage.offsetWidth;
+        if (r.x > w + 70 || r.x < -100) {
+          // Helper: count clean right-side finishers (no fall, no turn)
+          if (gameMode === 'helper' && r.x > w && !r._everFell && !r.turnedAround) {
+            bonusStats.cleanExits++;
+          }
+          r.el.remove();
+          if (selectedRunner === r) {
+            selectedRunner = null;
+            hint.textContent = gameMode === 'saboteur'
+              ? '😈 cause as much chaos as possible!'
+              : '🤝 help runners! deliver items, high-five, avoid chaos';
+          }
+          usedNames.delete(r.name);
+          runners.splice(i, 1);
+        }
+      }
+
+      checkCollisions();
+      requestAnimationFrame(tick);
+      return;
+    }
+
+    // ── Marathon mode below ───────────────────────────────
+
+    // ── Mile counter (240 frames ≈ 4 s at 60 fps) ─────────
+    if (mileFrame > 240 && mile < 26) {
+      mile++;
+      mileFrame = 0;
+      document.getElementById('mile').textContent = mile;
+
+      // Every 6 miles: a spectator in the crowd loses it
+      if (mile % 6 === 0 && window.triggerCrowdScreamer) {
+        window.triggerCrowdScreamer(window._marathonCrowd, window._marathonRunners, stage);
+      }
+
+      // Milestone commentator callouts
+      if (mile === 13 && window.commentate) window.commentate('Halfway there!! 💪');
+      if (mile === 20 && window.commentate) window.commentate('Mile 20 — the wall is REAL 😬');
+      if (mile === 25) {
+        if (window.spawnFinishLine) window.spawnFinishLine(stage);
+        if (window.commentate)      window.commentate('MILE 25 — one more to go!! 🏁');
+      }
+    }
 
     maybeSpawn();
+
+    // ── Delegate to new-features.js ───────────────────────
+    if (window.tickEvents)        window.tickEvents(runners, stage);
+    if (window.tickPigeons)       window.tickPigeons(runners, stage);
+    if (window.tickWeather)       window.tickWeather(runners, stage);
+
     for (const r of runners) if (r.bumpCooldown > 0) r.bumpCooldown--;
 
-    // Peels
+    // ── Banana peels ──────────────────────────────────────
     for (let p = peels.length - 1; p >= 0; p--) {
       const peel = peels[p];
       if (--peel.life <= 0) { peel.el.remove(); peels.splice(p, 1); continue; }
       for (const r of runners) {
-        if (r.fallen || r.beingRescued || r.isWc || r.lane !== peel.lane) continue;
+        if (r.fallen || r.beingRescued || r.isWc || r.peeing || r.lane !== peel.lane) continue;
         if (Math.abs(r.x - peel.x) < 10 && r.direction === 1 && r.x < peel.x + 10) {
           peel.el.remove(); peels.splice(p, 1); makeSlip(r); break;
         }
       }
     }
 
-    // Runners
+    // ── Runner update ─────────────────────────────────────
     for (let i = runners.length - 1; i >= 0; i--) {
       const r = runners[i];
+
       const fatigue = Math.max(0.5, 1 - mile * 0.04);
       r.speed = r.baseSpeed * fatigue * r.morale;
 
-      if (r.paused > 0 && !r.fallen) r.paused--;
-      else if (!r.fallen) r.x += r.speed * r.direction;
+      // Movement — held if fallen or mid porta-potty dash
+      if (r.paused > 0 && !r.fallen && !r.peeing) r.paused--;
+      else if (!r.fallen && !r.peeing) r.x += r.speed * r.direction;
       r.el.style.left = r.x + 'px';
 
-      if (!r.fallen) {
+      // Bob / stride animation
+      if (!r.fallen && !r.peeing) {
         if (r.isWc) {
           const spokes = r.el.querySelector('.wheel-spokes');
           if (spokes) spokes.style.transform = `rotate(${frame * 12 * r.direction}deg)`;
@@ -614,9 +760,11 @@
         } else {
           const bob = Math.sin(frame * 0.25 + r.bobPhase) * 1.5;
           const ls  = Math.sin(frame * 0.25 + r.bobPhase) * 6;
-          if (!r.el.classList.contains('bumped')) r.el.style.transform = `translateY(${bob}px)`;
-          const lb = r.el.querySelector('.leg-back'), lf = r.el.querySelector('.leg-front');
-          const ab = r.el.querySelector('.arm-back'), af = r.el.querySelector('.arm-front');
+          // Don't clobber bump-shake or cramp-shake CSS animations
+          if (!r.el.classList.contains('bumped') && !r.el.classList.contains('cramping'))
+            r.el.style.transform = `translateY(${bob}px)`;
+          const lb = r.el.querySelector('.leg-back'),  lf = r.el.querySelector('.leg-front');
+          const ab = r.el.querySelector('.arm-back'),  af = r.el.querySelector('.arm-front');
           if (lb && r.paused <= 0) {
             lb.style.transform = `translateY(${Math.max(0,  ls)}px)`;
             lf.style.transform = `translateY(${Math.max(0, -ls)}px)`;
@@ -626,32 +774,31 @@
         }
       }
 
-      if (r.turnedAround && !r.fallen && frame % 90 === Math.floor(Math.random() * 90))
+      // Finish line (one-shot, only once finish line is spawned)
+      if (
+        window.triggerFinish && window.finishLineEl &&
+        !r._finished && r.direction === 1 && r.x >= stage.offsetWidth - 14
+      ) {
+        r._finished = true;
+        window.triggerFinish(r, stage);
+      }
+
+      // Wrong-way shouting
+      if (r.turnedAround && !r.fallen && !r.peeing && frame % 90 === Math.floor(Math.random() * 90))
         if (Math.random() < 0.3) shoutCorrection(r);
 
+      // Off-screen cleanup
       const w = stage.offsetWidth;
-        if (r.x > w + 70 || r.x < -100) {
-
-          if (r.direction === 1 && !r.fallen) {
-            runnersFinished++;
-
-            if (runnersFinished % 33 === 0 && mile < 26) {
-              mile++;
-              document.getElementById('mile').textContent = mile;
-            }
-          }
-
-          r.el.remove();
-
-          if (selectedRunner === r) {
-            selectedRunner = null;
-            hint.textContent = 'tap a runner, then pick an action';
-          }
-
-          usedNames.delete(r.name);
-          runners.splice(i, 1);
+      if (r.x > w + 70 || r.x < -100) {
+        r.el.remove();
+        if (selectedRunner === r) {
+          selectedRunner = null;
+          hint.textContent = 'tap a runner, then pick an action';
         }
+        usedNames.delete(r.name);
+        runners.splice(i, 1);
       }
+    }
 
     checkCollisions();
     requestAnimationFrame(tick);
@@ -659,23 +806,24 @@
 
   // ── Reaction sets ─────────────────────────────────────────
   const REACTIONS = {
-    pro:      { water:['*grabs*','thx'],         banana:['nice','*peels*'],      gel:['perfect','*nods*'],    cowbell:['🤘','lfg'],          cheer:['*nods*','thx'],        compliment:['*smirks*','I know 😎'], insult:['lol nope','*speeds up*', 'what a day!'],   confuse:['*ignores*','nice try']  },
-    happy:    { water:['THANK YOU 💖','lifesaver!!'],banana:['my hero!!','YESSS'],gel:['bless you','⚡⚡⚡'], cowbell:['MORE COWBELL','wooo!!'],cheer:['THANK YOU','*blows kiss*'],compliment:['*beams*','AWWW'],     insult:['*laughs*','fair fair'],     confuse:['wait... really?','are you sure??'] },
-    tired:    { water:['oh god thank you','YOU SAVED ME'],banana:['food. yes.','angel...'],gel:['I might live','please work'],cowbell:['*flinches*','too loud'],cheer:['*weak smile*','thanks...'],compliment:['*cries*','don\'t lie'],insult:['I know 😭','you\'re right'],confuse:['oh no','OH GOD','*believes you*'] },
-    salty:    { water:['*grunt*','mhm'],          banana:['fine','...'],          gel:['could be colder','whatever'],cowbell:['quiet down','*glares*'],cheer:['*ignores*','*stoic*'],compliment:['*unimpressed*','kid stuff'],insult:['*flips off*','see you at 26 🖕'],confuse:['*ignores*','pathetic'] },
-    gullible: { water:['THANK YOU OMG','first marathon!!'],banana:['oh wow!! food!!','thanks!!'],gel:['what is this?','ooooh'],cowbell:['IS THIS FOR ME?','I love this!!'],cheer:['I HEAR YOU 🥺','*waves*'],compliment:['ME?? thanks!!','*ugly cry*'],insult:['😭','*deeply hurt*'],confuse:['WAIT WHAT','OH NO','really??'] },
+    pro:      { water:['*grabs*','thx'],                    banana:['nice','*peels*'],          gel:['perfect','*nods*'],          cowbell:['🤘','lfg'],                cheer:['*nods*','thx'],            compliment:['*smirks*','I know 😎'],    insult:['lol nope','*speeds up*','what a day!'], confuse:['*ignores*','nice try']            },
+    happy:    { water:['THANK YOU 💖','lifesaver!!'],        banana:['my hero!!','YESSS'],        gel:['bless you','⚡⚡⚡'],          cowbell:['MORE COWBELL','wooo!!'],    cheer:['THANK YOU','*blows kiss*'],  compliment:['*beams*','AWWW'],           insult:['*laughs*','fair fair'],          confuse:['wait... really?','are you sure??'] },
+    tired:    { water:['oh god thank you','YOU SAVED ME'],   banana:['food. yes.','angel...'],    gel:['I might live','please work'],  cowbell:['*flinches*','too loud'],    cheer:['*weak smile*','thanks...'],  compliment:["*cries*","don't lie"],       insult:['I know 😭',"you're right"],      confuse:['oh no','OH GOD','*believes you*']   },
+    salty:    { water:['*grunt*','mhm'],                     banana:['fine','...'],               gel:['could be colder','whatever'], cowbell:['quiet down','*glares*'],    cheer:['*ignores*','*stoic*'],       compliment:['*unimpressed*','kid stuff'], insult:['*flips off*','see you at 26 🖕'], confuse:['*ignores*','pathetic']            },
+    gullible: { water:['THANK YOU OMG','first marathon!!'],  banana:['oh wow!! food!!','thanks!!'],gel:['what is this?','ooooh'],      cowbell:['IS THIS FOR ME?','I love this!!'], cheer:['I HEAR YOU 🥺','*waves*'], compliment:['ME?? thanks!!','*ugly cry*'], insult:['😭','*deeply hurt*'],            confuse:['WAIT WHAT','OH NO','really??']     },
   };
 
   // ── Action handler ────────────────────────────────────────
   function react(runner, action) {
-    if (runner.fallen || runner.beingRescued) return;
+    if (runner.fallen || runner.beingRescued || runner.peeing) return;
     const opts = REACTIONS[runner.archetype.p][action] || ['...'];
     const b = document.createElement('div');
-    b.className = 'reaction-bubble';
+    b.className   = 'reaction-bubble';
     if (action === 'confuse') b.classList.add('confused');
     b.textContent = opts[Math.floor(Math.random() * opts.length)];
     if (runner.direction === -1) b.classList.add('flipped');
-    runner.el.appendChild(b); setTimeout(() => b.remove(), 2400);
+    runner.el.appendChild(b);
+    setTimeout(() => b.remove(), 2400);
 
     const isItem = ['water','banana','gel','cowbell'].includes(action);
     const rd = Math.random(), p = runner.archetype.p;
@@ -689,6 +837,7 @@
         runner.paused = 50; runner.morale = Math.min(1.3, runner.morale + 0.1); stats.stop++;
       }
     } else if (action === 'cheer' || action === 'compliment') {
+      bonusStats.cheers++;
       audioSwell(0.04);
       if (rd < 0.5) runner.morale = Math.min(1.3, runner.morale + 0.05);
       else if (rd < 0.7) { stats.stop++; runner.paused = 30; }
@@ -697,7 +846,8 @@
         stats.stop++; runner.paused = 60; runner.morale = Math.max(0.6, runner.morale - 0.1);
       }
     } else if (action === 'confuse') {
-      const chance = runner.isWc ? 0 : (p === 'gullible' ? 0.7 : p === 'tired' ? 0.45 : p === 'happy' ? 0.15 : 0);
+      const chance = runner.isWc ? 0
+        : p === 'gullible' ? 0.7 : p === 'tired' ? 0.45 : p === 'happy' ? 0.15 : 0;
       if (rd < chance && !runner.turnedAround) {
         runner.direction = -1; runner.turnedAround = true; setFlip(runner);
         stats.turned++;
@@ -709,24 +859,119 @@
 
   function tossItem(runner, emoji) {
     const it = document.createElement('div');
-    it.className = 'floating-item'; it.textContent = emoji;
+    it.className   = 'floating-item';
+    it.textContent = emoji;
     const sR = stage.getBoundingClientRect(), rR = runner.el.getBoundingClientRect();
     it.style.left   = (rR.left - sR.left) + 'px';
     it.style.bottom = (sR.bottom - rR.top - 20) + 'px';
     it.style.setProperty('--tx', (Math.random() * 30 - 15) + 'px');
     it.style.setProperty('--ty', '-30px');
-    stage.appendChild(it); setTimeout(() => it.remove(), 1400);
+    stage.appendChild(it);
+    setTimeout(() => it.remove(), 1400);
   }
 
   window.doAction = function (action) {
     if (!selectedRunner) { hint.textContent = '⚠ tap a runner first'; return; }
     const r = selectedRunner;
-    if (r.fallen || r.beingRescued) { hint.textContent = '⚠ runner is busy'; return; }
+    if (r.fallen || r.beingRescued || r.peeing) { hint.textContent = '⚠ runner is busy'; return; }
     const emojis = { water:'💧', banana:'🍌', gel:'⚡', cowbell:'🔔' };
     if (emojis[action]) tossItem(r, emojis[action]);
     react(r, action);
   };
 
-  tick();
+  // ── Mode logic ────────────────────────────────────────────
+  let gameMode    = null;       // 'marathon' | 'saboteur'
+  let bonusFrames = 0;           // saboteur countdown (frames remaining)
+  let bonusEnded  = false;
+  const BONUS_TOTAL_FRAMES = 60 * 60; // ~60s at 60fps
+
+  function startGame(mode) {
+    gameMode  = mode;
+    bonusEnded = false;
+    document.getElementById('start-screen').classList.add('hidden');
+
+    if (mode === 'saboteur' || mode === 'helper') {
+      document.getElementById('saboteur-hud').classList.add('active');
+      document.querySelector('.top-bar .pill:not(.btn)').style.display = 'none';
+      bonusFrames = mode === 'helper' ? 90 * 60 : 60 * 60;
+      hint.textContent = mode === 'saboteur'
+        ? '😈 cause as much chaos as possible!'
+        : '🤝 help runners! deliver items, high-five, avoid chaos';
+    }
+    if (!window._tickStarted) { window._tickStarted = true; tick(); }
+  }
+
+  function calcSaboteurScore() {
+    return stats.slip * 3 + stats.bump * 2 + stats.turned * 4;
+  }
+
+  function calcHelperScore() {
+    return stats.helped * 1
+         + bonusStats.cheers * 1
+         + bonusStats.hifi * 2
+         + bonusStats.cleanExits * 5
+         - stats.slip * 2
+         - stats.bump * 2
+         - stats.turned * 2;
+  }
+
+  function calcBonusScore() {
+    return gameMode === 'saboteur' ? calcSaboteurScore() : calcHelperScore();
+  }
+
+  function endBonus() {
+    if (bonusEnded) return;
+    bonusEnded = true;
+    for (const r of runners) r.paused = 99999;
+
+    const score = calcBonusScore();
+    document.getElementById('final-score').textContent = score;
+
+    let breakdown;
+    if (gameMode === 'saboteur') {
+      breakdown =
+        `<b>${stats.slip}</b> slips × 3 = ${stats.slip * 3}<br>` +
+        `<b>${stats.bump}</b> bumps × 2 = ${stats.bump * 2}<br>` +
+        `<b>${stats.turned}</b> turned × 4 = ${stats.turned * 4}`;
+    } else {
+      const lines = [
+        `<b>${stats.helped}</b> items × 1 = ${stats.helped}`,
+        `<b>${bonusStats.cheers}</b> cheers × 1 = ${bonusStats.cheers}`,
+        `<b>${bonusStats.hifi}</b> high-fives × 2 = ${bonusStats.hifi * 2}`,
+        `<b>${bonusStats.cleanExits}</b> clean finishers × 5 = ${bonusStats.cleanExits * 5}`,
+      ];
+      if (stats.slip)   lines.push(`<b>${stats.slip}</b> slips × -2 = -${stats.slip * 2}`);
+      if (stats.bump)   lines.push(`<b>${stats.bump}</b> bumps × -2 = -${stats.bump * 2}`);
+      if (stats.turned) lines.push(`<b>${stats.turned}</b> turned × -2 = -${stats.turned * 2}`);
+      breakdown = lines.join('<br>');
+    }
+    document.getElementById('end-breakdown').innerHTML = breakdown;
+    document.getElementById('end-screen').classList.add('active');
+  }
+
+  // Wire start screen buttons
+  document.querySelectorAll('.mode-card').forEach(btn => {
+    btn.addEventListener('click', () => startGame(btn.dataset.mode));
+  });
+  document.getElementById('play-again-btn').addEventListener('click', () => location.reload());
+  document.getElementById('back-menu-btn').addEventListener('click', () => location.reload());
 
 })();
+
+// ── Wire new-features.js hooks once everything is loaded ──────
+window.addEventListener('load', () => {
+  const stageEl = document.getElementById('stage');
+
+  // High-five zone
+  const zone = document.getElementById('hifi-zone');
+  if (zone && window.attachHifiZone) {
+    window.attachHifiZone(zone, window._marathonRunners || [], stageEl);
+  }
+
+  // Crowd photographers — small delay so crowd DOM is fully built
+  setTimeout(() => {
+    if (window.initPhotographers && window._marathonCrowd) {
+      window.initPhotographers(window._marathonCrowd, window._marathonRunners || [], stageEl);
+    }
+  }, 500);
+});
