@@ -614,7 +614,7 @@
       else            tp.classList.remove('warning');
 
       // Live score update
-      document.getElementById('score-val').textContent = calcSaboteurScore();
+      document.getElementById('score-val').textContent = calcBonusScore();
 
       if (bonusFrames <= 0) { endBonus(); requestAnimationFrame(tick); return; }
 
@@ -949,12 +949,37 @@
     document.getElementById('end-screen').classList.add('active');
   }
 
-  // Wire start screen buttons
-  document.querySelectorAll('.mode-card').forEach(btn => {
-    btn.addEventListener('click', () => startGame(btn.dataset.mode));
-  });
-  document.getElementById('play-again-btn').addEventListener('click', () => location.reload());
-  document.getElementById('back-menu-btn').addEventListener('click', () => location.reload());
+  // Wire start screen buttons (defensive — wait until DOM is ready)
+  function wireStartScreen() {
+    const cards = document.querySelectorAll('.mode-card');
+    if (cards.length === 0) {
+      // DOM not ready yet — try again on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', wireStartScreen);
+      return;
+    }
+    cards.forEach(btn => {
+      btn.addEventListener('click', () => startGame(btn.dataset.mode));
+    });
+    const pa = document.getElementById('play-again-btn');
+    const bm = document.getElementById('back-menu-btn');
+    if (pa) pa.addEventListener('click', () => location.reload());
+    if (bm) bm.addEventListener('click', () => location.reload());
+
+    const back = document.getElementById('back-btn');
+    if (back) back.addEventListener('click', () => {
+      // If they're mid-game, ask before bailing
+      if (gameMode && !bonusEnded && (stats.helped + stats.slip + stats.bump) > 0) {
+        if (!confirm('Quit current game and return to menu?')) return;
+      }
+      location.reload();
+    });
+    console.log('[mile26] start screen wired:', cards.length, 'modes');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireStartScreen);
+  } else {
+    wireStartScreen();
+  }
 
 })();
 
