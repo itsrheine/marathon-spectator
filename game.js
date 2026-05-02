@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-//  Marathon Spectator — game.js
-// ─────────────────────────────────────────────────────────────
-
 (function () {
   'use strict';
 
@@ -166,7 +162,7 @@
   ];
   const POSTER_TEXTS = [
     ['GO','MOM!'],['RUN','DAD'],['#1','FAN'],['MY','HERO'],
-    ['GO','BABE'],['ALMOST','THERE'],['💪','💪'],['🔥','🔥'],
+    ['GO','BABE'],['YOU','ROCK'],['💪','💪'],['🔥','🔥'],
   ];
   const POSTER_BGS = ['#FAEEDA','#E6F1FB','#E1F5EE','#FCEBEB','#EEEDFE','#FAF6E7'];
   const crowdMembers = [];
@@ -191,7 +187,7 @@
 
   // ── Crowd dialogue ────────────────────────────────────────
   const GENERIC_SHOUTS  = ['GOOOO!!','strong!','wooo!!','LETS GOOO','flying!','champ!','almost there!','BEAST MODE'];
-  const CONCERN_SHOUTS  = ['oh no!','OH NO','help!','*gasps*','poor thing','medic!!'];
+  const CONCERN_SHOUTS  = ['oh no!','OH NO','help!','*gasps*','poor thing','medic!!','jeez!', 'what a day!'];
 
   function namedShout(name) {
     const opts = [
@@ -357,6 +353,7 @@
   let selectedRunner = null;
   let emergency      = false;
   let mile           = 0;
+  let runnersFinished = 0; 
   const runners      = [];
   const peels        = [];
 
@@ -573,11 +570,10 @@
   }
 
   // ── Main loop ─────────────────────────────────────────────
-  let frame = 0, mileFrame = 0;
+  let frame = 0;
 
   function tick() {
-    frame++; mileFrame++;
-    if (mileFrame > 240 && mile < 26) { mile++; mileFrame = 0; document.getElementById('mile').textContent = mile; }
+    frame++;
 
     maybeSpawn();
     for (const r of runners) if (r.bumpCooldown > 0) r.bumpCooldown--;
@@ -629,13 +625,27 @@
         if (Math.random() < 0.3) shoutCorrection(r);
 
       const w = stage.offsetWidth;
-      if (r.x > w + 70 || r.x < -100) {
-        r.el.remove();
-        if (selectedRunner === r) { selectedRunner = null; hint.textContent = 'tap a runner, then pick an action'; }
-        usedNames.delete(r.name);
-        runners.splice(i, 1);
-      }
-    }
+        if (r.x > w + 70 || r.x < -100) {
+
+          if (r.direction === 1 && !r.fallen) {
+            runnersFinished++;
+
+            if (runnersFinished % 44 === 0 && mile < 26) {
+              mile++;
+              document.getElementById('mile').textContent = mile;
+            }
+          }
+
+          r.el.remove();
+
+          if (selectedRunner === r) {
+            selectedRunner = null;
+            hint.textContent = 'tap a runner, then pick an action';
+          }
+
+          usedNames.delete(r.name);
+          runners.splice(i, 1);
+        }   
 
     checkCollisions();
     requestAnimationFrame(tick);
@@ -644,7 +654,7 @@
 
   // ── Reaction sets ─────────────────────────────────────────
   const REACTIONS = {
-    pro:      { water:['*grabs*','thx'],         banana:['nice','*peels*'],      gel:['perfect','*nods*'],    cowbell:['🤘','lfg'],          cheer:['*nods*','thx'],        compliment:['*smirks*','I know 😎'], insult:['lol cope','*speeds up*'],   confuse:['*ignores*','nice try']  },
+    pro:      { water:['*grabs*','thx'],         banana:['nice','*peels*'],      gel:['perfect','*nods*'],    cowbell:['🤘','lfg'],          cheer:['*nods*','thx'],        compliment:['*smirks*','I know 😎'], insult:['lol nope','*speeds up*', 'what a day!'],   confuse:['*ignores*','nice try']  },
     happy:    { water:['THANK YOU 💖','lifesaver!!'],banana:['my hero!!','YESSS'],gel:['bless you','⚡⚡⚡'], cowbell:['MORE COWBELL','wooo!!'],cheer:['THANK YOU','*blows kiss*'],compliment:['*beams*','AWWW'],     insult:['*laughs*','fair fair'],     confuse:['wait... really?','are you sure??'] },
     tired:    { water:['oh god thank you','YOU SAVED ME'],banana:['food. yes.','angel...'],gel:['I might live','please work'],cowbell:['*flinches*','too loud'],cheer:['*weak smile*','thanks...'],compliment:['*cries*','don\'t lie'],insult:['I know 😭','you\'re right'],confuse:['oh no','OH GOD','*believes you*'] },
     salty:    { water:['*grunt*','mhm'],          banana:['fine','...'],          gel:['could be colder','whatever'],cowbell:['quiet down','*glares*'],cheer:['*ignores*','*stoic*'],compliment:['*unimpressed*','kid stuff'],insult:['*flips off*','see you at 26 🖕'],confuse:['*ignores*','pathetic'] },
