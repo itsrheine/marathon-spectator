@@ -122,44 +122,37 @@
   }
 
   // ── Audio ─────────────────────────────────────────────────
-  let audioCtx = null, noiseGain = null, audioOn = false;
+  let crowdAudio = null;
+  let audioOn = false;
+
   document.getElementById('audio-toggle').addEventListener('click', function () {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const bufSize = 2 * audioCtx.sampleRate;
-      const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-      const data = buf.getChannelData(0);
-      let b0 = 0, b1 = 0, b2 = 0;
-      for (let i = 0; i < bufSize; i++) {
-        const w = Math.random() * 2 - 1;
-        b0 = 0.997 * b0 + w * 0.099;
-        b1 = 0.963 * b1 + w * 0.296;
-        b2 = 0.57  * b2 + w * 1.05;
-        data[i] = (b0 + b1 + b2) * 0.13;
-      }
-      const noise = audioCtx.createBufferSource();
-      noise.buffer = buf; noise.loop = true;
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'bandpass'; filter.frequency.value = 800; filter.Q.value = 0.7;
-      const gain = audioCtx.createGain(); gain.gain.value = 0;
-      noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-      noise.start();
-      noiseGain = gain;
+    if (!crowdAudio) {
+      crowdAudio = new Audio('/crowd.mp3');
+      crowdAudio.loop = true;
+      crowdAudio.volume = 0.25;
     }
+
     audioOn = !audioOn;
-    audioCtx.resume();
-    noiseGain.gain.linearRampToValueAtTime(audioOn ? 0.18 : 0, audioCtx.currentTime + 0.4);
-    this.textContent = audioOn ? '🔊 sound' : '🔇 mute';
+
+    if (audioOn) {
+      crowdAudio.play();
+      this.textContent = '🔊 sound';
+    } else {
+      crowdAudio.pause();
+      this.textContent = '🔇 mute';
+    }
   });
 
-  function audioSwell(intensity = 0.08) {
-    if (!audioOn || !noiseGain) return;
-    const t = audioCtx.currentTime;
-    noiseGain.gain.cancelScheduledValues(t);
-    const cur = noiseGain.gain.value;
-    noiseGain.gain.setValueAtTime(cur, t);
-    noiseGain.gain.linearRampToValueAtTime(Math.min(0.4, cur + intensity), t + 0.2);
-    noiseGain.gain.linearRampToValueAtTime(0.18, t + 1.2);
+  // Crowd reaction swell (fake boost effect)
+  function audioSwell(intensity = 0.1) {
+    if (!audioOn || !crowdAudio) return;
+
+    const base = 0.25;
+    crowdAudio.volume = Math.min(0.6, base + intensity);
+
+    setTimeout(() => {
+      if (crowdAudio) crowdAudio.volume = base;
+    }, 800);
   }
 
   // ── Crowd spectators ──────────────────────────────────────
@@ -257,21 +250,21 @@
 
   // ── Runner archetypes ─────────────────────────────────────
   const ARCHETYPES = [
-    { shirt:'#e24b4a', shorts:'#1a1a1a', skin:'#f4c4a0', p:'pro',     bib:'001', g:'M', hair:'short', hc:'#3a2820' },
+    { shirt:'#e24b4a', shorts:'#27158d', skin:'#f4c4a0', p:'pro',     bib:'001', g:'M', hair:'short', hc:'#3a2820' },
     { shirt:'#d4537e', shorts:'#1a1a1a', skin:'#f4c4a0', p:'pro',     bib:'002', g:'F', hair:'pony',  hc:'#5a3a20' },
-    { shirt:'#378add', shorts:'#444',    skin:'#d9a574', p:'happy',   bib:'247', g:'M', hair:'short', hc:'#222'    },
+    { shirt:'#378add', shorts:'#18c131',    skin:'#d9a574', p:'happy',   bib:'247', g:'M', hair:'short', hc:'#222'    },
     { shirt:'#7f77dd', shorts:'#1a1a1a', skin:'#e8c0a0', p:'happy',   bib:'326', g:'F', hair:'pony',  hc:'#3a2820' },
-    { shirt:'#f5c4b3', shorts:'#5a5550', skin:'#c98c63', p:'tired',   bib:'588', g:'M', hair:'short', hc:'#1a1a1a' },
-    { shirt:'#1d9e75', shorts:'#222',    skin:'#e8b48a', p:'happy',   bib:'412', g:'F', hair:'bun',   hc:'#4a2a18' },
-    { shirt:'#ba7517', shorts:'#1a1a1a', skin:'#a87858', p:'salty',   bib:'003', g:'M', hair:'bald',  hc:'#888'    },
+    { shirt:'#f5c4b3', shorts:'#d17920', skin:'#c98c63', p:'tired',   bib:'588', g:'M', hair:'short', hc:'#1a1a1a' },
+    { shirt:'#1d9e75', shorts:'#192d9f',    skin:'#e8b48a', p:'happy',   bib:'412', g:'F', hair:'bun',   hc:'#4a2a18' },
+    { shirt:'#ba7517', shorts:'#2695a1', skin:'#a87858', p:'salty',   bib:'003', g:'M', hair:'bald',  hc:'#888'    },
     { shirt:'#5dcaa5', shorts:'#222',    skin:'#e0a87c', p:'salty',   bib:'014', g:'F', hair:'pony',  hc:'#222'    },
     { shirt:'#fac775', shorts:'#e24b4a', skin:'#e0a87c', p:'gullible',bib:'777', g:'M', hair:'short', hc:'#3a2820' },
-    { shirt:'#5dcaa5', shorts:'#333',    skin:'#dcb088', p:'gullible',bib:'512', g:'F', hair:'bun',   hc:'#5a3a20' },
+    { shirt:'#5dcaa5', shorts:'#a4ae12',    skin:'#dcb088', p:'gullible',bib:'512', g:'F', hair:'bun',   hc:'#5a3a20' },
     { shirt:'#185fa5', shorts:'#000',    skin:'#e8c0a0', p:'pro',     bib:'108', g:'F', hair:'pony',  hc:'#fac775' },
-    { shirt:'#ff6f91', shorts:'#222',    skin:'#f1c27d', p:'happy',   bib:'639', g:'F', hair:'pony',  hc:'#5a2a1a' },
-    { shirt:'#6a4c93', shorts:'#1a1a1a', skin:'#e0ac69', p:'tired',   bib:'842', g:'F', hair:'bun',  hc:'#1a1a1a' },
-    { shirt:'#00b894', shorts:'#333',    skin:'#d2a679', p:'salty',   bib:'275', g:'F', hair:'pony',  hc:'#3b2f2f' },
-    { shirt:'#0984e3', shorts:'#111',    skin:'#f4c4a0', p:'gullible', bib:'918', g:'F', hair:'pony', hc:'#8b4513' }
+    { shirt:'#ff6f91', shorts:'#f10707',    skin:'#f1c27d', p:'happy',   bib:'639', g:'F', hair:'pony',  hc:'#5a2a1a' },
+    { shirt:'#6a4c93', shorts:'#a80f0f', skin:'#e0ac69', p:'tired',   bib:'842', g:'F', hair:'bun',  hc:'#1a1a1a' },
+    { shirt:'#00b894', shorts:'#c73e3e',    skin:'#d2a679', p:'salty',   bib:'275', g:'F', hair:'pony',  hc:'#3b2f2f' },
+    { shirt:'#0984e3', shorts:'#18a49a',    skin:'#f4c4a0', p:'gullible', bib:'918', g:'F', hair:'bun', hc:'#8b4513' }
   ];
   const WC_ARCHETYPES = [
     { shirt:'#185fa5', shorts:'#1a1a1a', skin:'#e8c0a0', p:'pro', bib:'W01', g:'M', hair:'short', hc:'#3a2820', wc:true },
