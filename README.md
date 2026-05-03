@@ -6,29 +6,19 @@ Super chaotic marathon spectator simulator. Have fun!
 
 ## Play
 
-Just open `index.html` in any modern browser. No build step, no dependencies.
+👉 [Play Marathon Spectator](https://marathon-game-tan.vercel.app)
 
-```
-open index.html
-```
+## Game Modes
 
-Or serve it locally:
-
-```bash
-npx serve .
-# or
-python3 -m http.server
-```
-
-Or click the link:
-
-[🚀 Play Marathon Spectator](https://marathon-game-tan.vercel.app)
-
+- **Marathon** — 26 miles of runners, crowd chaos, random race events, and finish-line drama.
+- **Saboteur** — 60 seconds to cause as much chaos as possible.
+- **Helper** — 90 seconds to aid runners, high-five them, and avoid creating disasters.
+  
 ## How to Play
 
-1. **Tap a runner** on the road to select them (dashed blue outline appears)
-2. **Pick an action** from the button grid below the screen
-3. Watch the chaos unfold
+1. Tap a runner to select them.
+2. Choose an action from the button grid.
+3. Watch the runner, crowd, and course react in real time.
 
 ### Actions
 
@@ -51,6 +41,22 @@ Or click the link:
 - **Salty** — trash talk makes them run *faster*, ignores wrong-way pranks
 - **Gullible** — believes everything, most likely to turn around
 
+## New Features
+
+- **Start screen with mode selection** for Marathon, Saboteur, and Helper modes.
+- **Real crowd ambience audio** using `crowd.mp3` instead of generated white noise.
+- **Porta-potty events** where runners can leave the course for an emergency pit stop.
+- **Cramp events** that slow runners down temporarily.
+- **High-five zone** where players can tap near the railing to boost runners.
+- **Finish line and confetti** near the end of the marathon.
+- **Commentator bubbles** with milestone callouts and funny race updates.
+- **Crowd scream events** every 6 miles that distract visible runners.
+- **Crowd photographers** who snap photos when runners pass by.
+- **Pigeons** that fly across the sky and can cause poop-drop chaos.
+- **Weather events** including rain, snow, and lightning effects.
+- **Expanded runner names and archetypes** for more variety.
+- **Bonus scoring** for Helper and Saboteur-style play.
+  
 ### Special Runners
 
 - ** Wheelchair athletes** (~1% spawn rate) — aerodynamic helmet, spinning spokes, fastest on course (1.4–1.8× speed), immune to banana peels, slipping, and wrong-way pranks.
@@ -64,27 +70,28 @@ Or click the link:
 
 ### Crowd & Atmosphere
 
-- 26 spectators line the barrier, ~25% holding hand-painted signs
-- Metal railing with colorful sponsor banners draped over it (NIKK, GATORADIE, ASIKZ, POWRADE, etc.)
-- Red blimp drifting back and forth across the sky
-- City skyline parallax in the background
-- 3 drifting clouds
-- Optional crowd noise (WebAudio pink noise → bandpass filter → LFO) - //NOT PERMANENT, NEED TO FIND NEW MUSIC//
-- Mile counter ticks up to 26
+- 26 animated spectators along the railing.
+- Some spectators hold signs.
+- Sponsor banners line the course.
+- Animated clouds, skyline, and blimp.
+- Runner reactions, crowd bubbles, collisions, slips, paramedics, and random chaos.
 
-## Browser Support
+## Tech
 
-Works in all evergreen browsers. Uses:
-- CSS custom properties
-- SVG inline sprites
-- Web Animations (CSS `@keyframes`)
-- Web Audio API (optional, for crowd noise)
-- `requestAnimationFrame` game loop
+Built with:
 
-No canvas, no WebGL, no frameworks.
+- HTML
+- CSS
+- JavaScript
+- Vite
+- Vercel deployment
 
-## License
+No game engine, no canvas, no WebGL.
 
-MIT — do whatever you want with it.
+## Local Development
 
-
+```bash
+cd marathon-game
+npm install
+npm run dev
+```
